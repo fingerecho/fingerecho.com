@@ -1,0 +1,2 @@
+curl --data "email=123180918@qq.com&telephone=18296691230&password=292039jflsa>djfl??fdj" http://localhost:8000/signin
+curl --data "email=123180918@qq.com&password=292039jflsa>djfl??fdj" http://localhost:8000/signup
