@@ -18,6 +18,7 @@ if not ok then
     ngx.redirect('/status?message=无法连接到Redis服务器')
     return
 end
+
 local res,err = red:auth("asdfASDF123!@#")
 if not res then
    ngx.redirect('/status?message=Redis授权失败')
@@ -25,8 +26,8 @@ if not res then
 end
 
 local get_res, err = red:get( kvargs.email )
-if get_res then
-    ngx.redirect("/status?message=Your session has been saved in the redis.")
+if not get_res then
+    ngx.redirect("/status?message=",err)
 end
 
 -- 连接MySql，查询数据库是否存在该用户(用户password比对),如果存在则在redis设置一个key,否则登录失败 
@@ -34,7 +35,7 @@ local db , err = mysql:new()
 
 if not db then
         --ngx.say("failed to instantiate mysql:",err)
-        ngx.redirect('/status?message=instantiate-Mysql-Failed')
+        ngx.redirect('/status?message=Instantiate Mysql Failed')
         return
 end
 
@@ -65,7 +66,7 @@ if not res then
    ngx.redirect('/status?message=Query-Mysql-Failed'..err..errno..sqlstate)
    return
 elseif #res == 0 then
-   ngx.redirect('/status?message=Sign up failed')
+   ngx.redirect('/status?message=Sign up failed , email or password matched failed.')
    return
 elseif #res > 1 then
    ngx.redirect('/status?message=System Error')
@@ -75,11 +76,13 @@ elseif #res == 1 then
         -- 向Redis中设置一个键值对
         local set_res, err = red:set( kvargs.email, kvargs.password )
         if not set_res then
-            ngx.say("set key-value failed: ", err)
-            --ngx.redirect('/status?message=Set Key value failed')
+            --ngx.say("set key-value failed: ", err)
+            ngx.redirect('/status?message=Set Key value failed')
             return
+        else
+            ngx.redirect('/status?message=Sign up success!')
         end
-         
+        
         -- 从Redis中获取一个键的值
         --[[local get_res, err = red:get("mykey")
         if not get_res then
@@ -91,6 +94,11 @@ elseif #res == 1 then
         ngx.say("获取到的值为: ", get_res)
         --]] 
         -- 关闭Redis连接（重要！）
+end
+local ok,err = red:set_keepalive(10000,100)
+if not ok then
+        ngx.redirect('/status?message=failed to set keepalive')
+        return
 end
 local close_res, err = red:close()
 if not close_res then

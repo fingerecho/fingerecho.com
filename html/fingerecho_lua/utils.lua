@@ -54,7 +54,7 @@ end
 data = unescape(data)
 test = Split(data, '&')
 
-kvargs = {}
+local kvargs = {}
 for i,j in pairs(test) do 
     m = Split(j,'=')
     kvargs[m[1]] = m[2]

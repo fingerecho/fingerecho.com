@@ -2,7 +2,28 @@ local mysql = require "resty.mysql"
 
 require "utils"
 
+ngx.req.read_body()
+data = ngx.req.get_body_data()
+if nil == data then
+    local file_name = ngx.req.get_body_file()
+    --ngx.say(">> temp file: ", file_name)
+    ngx.redirect('/status?message=getFile failed')
+    if file_name then
+        data = getFile(file_name)
+    end
+end
 
+--ngx.say("hello ", data)
+
+--data = 'email=283285356%40qq.com&telephone=17520092105&password=fkc%3E%3E%3Escs%21'
+data = unescape(data)
+test = Split(data, '&')
+
+local kvargs = {}
+for i,j in pairs(test) do 
+    m = Split(j,'=')
+    kvargs[m[1]] = m[2]
+end
 ---ngx.say(res['password'])
 -- 查询数据库是否存在该用户，若不存在则将 email telephone password 存入数据库
 
